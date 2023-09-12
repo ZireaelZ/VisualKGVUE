@@ -1,41 +1,78 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+    <button @click="runQuery('MATCH (n)-[r]->(m) RETURN n,r,m')">hello</button>
+    <button @click="logNodes()" >hello</button>
   </div>
+  <div id="vis-container" ref="vis-container" style="height: 800px"> </div>
 </template>
 
 <script>
+import neo4j from 'neo4j-driver'
+import Vis from 'vis'
 export default {
   name: 'HelloWorld',
+  components: {},
+
   props: {
     msg: String
-  }
+  },
+  data(){
+    return{
+      driver:null,
+      session:null,
+      nodes:null,
+      network:null
+    }
+  },
+  created() {
+    this.driver=neo4j.driver(
+        'bolt://localhost:7687',
+        neo4j.auth.basic('neo4j','neo4jneo4j')
+    )
+    this.session=this.driver.session()
+    // this.nodes={a:'1',b:2}
+  },
+  beforeUnmount() {
+    this.session.close()
+    this.driver.close()
+  },
+  methods:{
+    async runQuery(query) {
+      try {
+        const result = await this.session.run(query)
+        // 处理查询结果
+        this.nodes=result.records
+        // console.log(result.records)
+        // console.log(this.nodes)
+      } catch (error) {
+        // 处理错误
+        console.error(error)
+      }
+    },
+    logNodes(){
+      // console.log(JSON.parse(JSON.stringify(this.nodes)))
+      const nodes=[]
+      const edges=[]
+      this.nodes.forEach(record =>{
+        const node1 = record.get('n');
+        const node2 = record.get('m');
+        const rel = record.get('r');
+        // console.log(node1)
+        nodes.push({ id: node1.identity.toString(), label: node1.properties['name'], properties: node1.properties });
+        nodes.push({ id: node2.identity.toString(), label: node2.labels[0], properties: node2.properties });
+        edges.push({ from: node1.identity.toString(), to: node2.identity.toString(), label: rel.type, properties: rel.properties });
+      })
+      const container =this.$refs["vis-container"]
+      // const data = {
+      //   nodes: nodes,
+      //   edges: edges
+      // };
+      const options = {};
+      // this.network = new Vis.Network(container, data, options);
+      this.network = new Vis.Network(container, { nodes: this.nodes, edges: this.edges }, options);
+    }
+  },
+
 }
 </script>
 
