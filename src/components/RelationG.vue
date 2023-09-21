@@ -22,12 +22,22 @@ export default {
     return {
       isShowCodePanel: false,
       graphOptions: {
-        debug: true,
-        allowSwitchLineShape: true,
-        allowSwitchJunctionPoint: true,
-        allowShowDownloadButton: true,
-        defaultJunctionPoint: 'border'
-        // 这里可以参考"Graph 图谱"中的参数进行设置
+        // "backgrounImage": "https://camo.githubusercontent.com/ede1654f055903cdc39044129d15d5b158f4f3b33ba5b7c21c7407792a506dea/687474703a2f2f72656c6174696f6e2d67726170682e636f6d2f776562736974652f6c6f676f",
+        "defaultNodeColor": "#409EFF",
+        "defaultNodeBorderColor": "#409EFF",
+        "defaultNodeBorderWidth": 1,
+        "defaultNodeShape": 1,
+        "moveToCenterWhenRefresh": false,
+        "zoomToFitWhenRefresh": false,
+        "layouts": [
+          {
+            "label": "中心",
+            "layoutName": "force",
+            "layoutClassName": "seeks-layout-center",
+            "defaultExpandHolderPosition": "hide",
+            "defaultJunctionPoint": "border"
+          }
+        ]
       }
     };
   },
