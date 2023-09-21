@@ -3,15 +3,18 @@
     <button @click="runQuery('MATCH (n)-[r]->(m) RETURN n,r,m')">hello</button>
     <button @click="logNodes()" >hello</button>
   </div>
-  <div id="vis-container" ref="vis-container" style="height: 800px"> </div>
+  <router-link to="/RelationG">helloworld</router-link>
+  <router-view></router-view>
 </template>
 
 <script>
 import neo4j from 'neo4j-driver'
 import Vis from 'vis'
+// import VKnowledgeGraph from "@/components/vKnowledgeGraph";
 export default {
   name: 'HelloWorld',
-  components: {},
+  components: {
+  },
 
   props: {
     msg: String
