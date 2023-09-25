@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HelloWorld from '@/components/HelloWorld'
-import VKnowledgeGraph from "@/components/vKnowledgeGraph";
+import vKnowledgeGraph from "@/components/vKnowledgeGraph";
 import RelationG from '@/components/RelationG'
 
 const routes = [
@@ -12,7 +12,7 @@ const routes = [
     {
         path: '/vknowledgegraph',
         name: 'vknowledgegraph',
-        component: VKnowledgeGraph
+        component: vKnowledgeGraph
     },
     {
         path: '/RelationG',

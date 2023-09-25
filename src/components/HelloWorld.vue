@@ -3,7 +3,7 @@
     <button @click="runQuery('MATCH (n)-[r]->(m) RETURN n,r,m')">hello</button>
     <button @click="logNodes()" >hello</button>
   </div>
-  <router-link to="/RelationG">helloworld</router-link>
+  <router-link to="/vKnowledgeGraph">helloworld</router-link>
   <router-view></router-view>
 </template>
 

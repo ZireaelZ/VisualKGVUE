@@ -10,7 +10,7 @@
   "dependencies": {
     "core-js": "^3.8.3",
     "neo4j-driver": "^5.12.0",
-    "relation-graph": "^2.0.35",
+    "relation-graph": "^2.0.40",
     "vis": "^4.21.0-EOL",
     "vue": "^3.2.13",
     "vue-router": "^4.2.4"

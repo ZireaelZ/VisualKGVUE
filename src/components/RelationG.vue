@@ -1,6 +1,4 @@
 <template>
-  
-  <div>
     <div style="height:calc(100vh - 50px);">
       <RelationGraph
         ref="seeksRelationGraph"
@@ -8,8 +6,6 @@
         :on-node-click="onNodeClick"
         :on-line-click="onLineClick" />
     </div>
-    <el-button type="success" class="c-show-code-button"><el-link href="https://github.com/seeksdream/relation-graph/blob/master/examples/views/seeks-graph-docs/demo/Demo4Logo.vue" target="_blank" style="color: #ffffff;">查看代码</el-link></el-button>
-  </div>
 </template>
 
 <script>
@@ -20,24 +16,15 @@ export default {
   components: {RelationGraph},
   data() {
     return {
+      graphdata:null,
       isShowCodePanel: false,
       graphOptions: {
-        // "backgrounImage": "https://camo.githubusercontent.com/ede1654f055903cdc39044129d15d5b158f4f3b33ba5b7c21c7407792a506dea/687474703a2f2f72656c6174696f6e2d67726170682e636f6d2f776562736974652f6c6f676f",
-        "defaultNodeColor": "#409EFF",
-        "defaultNodeBorderColor": "#409EFF",
-        "defaultNodeBorderWidth": 1,
-        "defaultNodeShape": 1,
-        "moveToCenterWhenRefresh": false,
-        "zoomToFitWhenRefresh": false,
-        "layouts": [
-          {
-            "label": "中心",
-            "layoutName": "force",
-            "layoutClassName": "seeks-layout-center",
-            "defaultExpandHolderPosition": "hide",
-            "defaultJunctionPoint": "border"
-          }
-        ]
+        debug: true,
+        allowSwitchLineShape: true,
+        allowSwitchJunctionPoint: true,
+        allowShowDownloadButton: true,
+        defaultJunctionPoint: 'border'
+        // 这里可以参考"Graph 图谱"中的参数进行设置
       }
     };
   },
@@ -46,7 +33,7 @@ export default {
   },
   methods: {
     showSeeksGraph() {
-      const __graph_json_data = {
+      this.graphdata = {
         rootId: 'a',
         nodes: [
           { id: 'a', text: 'A', borderColor: 'yellow' },
@@ -61,7 +48,7 @@ export default {
           { from: 'b', to: 'e', text: '', color: '#67C23A' }
         ]
       };
-      this.$refs.seeksRelationGraph.setJsonData(__graph_json_data, (graphInstance) => {
+      this.$refs.seeksRelationGraph.setJsonData(this.graphdata, (graphInstance) => {
         // 这些写上当图谱初始化完成后需要执行的代码
         console.log(graphInstance)
       });
