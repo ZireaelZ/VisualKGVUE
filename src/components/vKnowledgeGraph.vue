@@ -1,68 +1,115 @@
 <template>
   <div>
-    <button @click='runquery(query)'>t se1</button>
-    <RelationG></RelationG>
+    <el-button @click='runquery(query)'>runquery</el-button>
+    <el-button @click="clearmap">清空地图数据</el-button>
+    <RelationG ref="rGraph" @newQuery="acceptQuery" @sendgeojson="acceptgeojson"></RelationG>
   </div>
   <div>
+    <MapContainer ref="mapContainer"></MapContainer>
   </div>
 </template>
 
 <script>
 
 import RelationG from './RelationG'
+import MapContainer from "@/components/MapContainer";
 import neo4j from 'neo4j-driver'
-import {ref, onMounted, onBeforeUnmount,reactive} from "vue";
+import {ref,onMounted, onBeforeUnmount, reactive} from "vue";
 
 export default {
   name: 'vKnowledgeGraph',
-  components:{RelationG},
+  components: {RelationG,MapContainer},
   setup() {
-    let RGdata=ref()
-    const query="MATCH (n) Return n limit 25"
+    const linejson = {
+      "type": "LineString",
+      "coordinates": [
+        [39.05865459950023, 41.23690586540761],
+        [36.26704421381755, 50.68171886355607],
+        [26.71693876424287, 39.59846666017073],
+        [30.89708131753751, 36.532217100586314]
+      ]
+    }
+    const RGdata = reactive({})
+    const query = "MATCH (n)-[r]->(m) Return n,r,m limit 25"
     let neo4jlink = reactive()
     let session = reactive()
     neo4jlink = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic('neo4j', 'neo4jneo4j'))
     onMounted(() => {
       session = neo4jlink.session()
+      runquery(query)
     })
     onBeforeUnmount(() => {
       session.close()
       neo4jlink.close()
     })
+    const rGraph=ref(null)
+    const showgraph=(data)=>{
+      rGraph.value.showSeeksGraph(data)
+    }
+    //从子组件接收参数
+    const acceptQuery=(newQ)=>{
+      console.log('accepted')
+      runquery(newQ)
+    }
+    const acceptgeojson=(geojson)=>{
+      console.log('acceptgeojson')
+      mapContainer.value.loadGeojson(geojson)
+    }
+    const mapContainer=ref(null)
+    //将从图谱组件收到的geojson送至地图页面
+    //清空地图页面的数据
+    const clearmap=()=>{
+      mapContainer.value.clearmap()
+    }
     const runquery = async (query) => {
       {
         try {
           const result = await session.run(query)
-          // 处理查询结果
-          RGdata=result.records
-          // let Graphdata={
-          //   rootId: 'a',
-          //   nodes: [
-          //     { id: 'a', text: 'A', borderColor: 'yellow' },
-          //     { id: 'b', text: 'B', color: '#43a2f1', fontColor: 'yellow' },
-          //     { id: 'c', text: 'C', nodeShape: 1, width: 80, height: 60 },
-          //     { id: 'e', text: 'E', nodeShape: 0, width: 150, height: 150 }
-          //   ],
-          //   lines: [
-          //     { from: 'a', to: 'b', text: '关系1', color: '#43a2f1' },
-          //     { from: 'a', to: 'c', text: '关系2' },
-          //     { from: 'a', to: 'e', text: '关系3' },
-          //     { from: 'b', to: 'e', text: '', color: '#67C23A' }
-          //   ]
-          // }
-          // console.log(Graphdata)
-          console.log(RGdata)
-
+          let nodes = [], edges = []
+          result.records.forEach(record => {
+            const node1 = record.get('n');
+            const node2 = record.get('m');
+            const rel = record.get('r');
+            let name1='',name2=''
+            Object.keys(node1.properties).forEach((pname)=>{
+              if (pname.includes('FIRST_NAME')){
+                name1=node1.properties[pname]
+              }
+            })
+            Object.keys(node2.properties).forEach((pname)=>{
+              if (pname.includes('FIRST_NAME')){
+                name2=node2.properties[pname]
+              }
+            })
+            nodes.push({id: node1.identity.toString(), text: name1, data: node1.properties});
+            nodes.push({id: node2.identity.toString(), text: name2, data: node2.properties});
+            edges.push({
+              from: node1.identity.toString(),
+              to: node2.identity.toString(),
+              text: rel.type,
+              data: rel.properties
+            });
+          })
+          RGdata.rootID = 999999
+          RGdata.nodes = nodes
+          RGdata.lines = edges
+          showgraph(RGdata)
         } catch (error) {
           // 处理错误
           console.error(error)
         }
       }
     }
-
-    return{
+    return {
       runquery,
       query,
+      rGraph,
+      showgraph,
+      acceptQuery,
+      acceptgeojson,
+      mapContainer,
+      clearmap,
+      linejson
     }
   }
   ,

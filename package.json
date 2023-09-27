@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
+    "element-plus": "^2.3.14",
     "neo4j-driver": "^5.12.0",
+    "ol": "^8.1.0",
     "relation-graph": "^2.0.40",
     "vis": "^4.21.0-EOL",
     "vue": "^3.2.13",

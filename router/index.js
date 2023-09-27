@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HelloWorld from '@/components/HelloWorld'
 import vKnowledgeGraph from "@/components/vKnowledgeGraph";
-import RelationG from '@/components/RelationG'
+// import RelationG from '@/components/RelationG'
+import MapContainer from "@/components/MapContainer";
 
 const routes = [
     {
@@ -15,10 +16,12 @@ const routes = [
         component: vKnowledgeGraph
     },
     {
-        path: '/RelationG',
-        name: 'RelationG',
-        component: RelationG
-    }
+        path: '/MapContainer',
+        name: 'MapContainer',
+        component: MapContainer
+    },
+
+
     // 其他路由配置...
 ];
 
