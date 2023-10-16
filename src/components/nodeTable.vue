@@ -24,7 +24,7 @@
                     </el-descriptions>
                   </template>
                   <template v-else-if="property=='geometry_type'">
-                    <div @click="showinMap(linejson)">在地图中查看</div>
+                    <el-link @click="showinMap(linejson)">在地图中查看</el-link>
                   </template>
                   <template v-else>
                     <div @click="clickprop(property,value)">{{value}}</div>

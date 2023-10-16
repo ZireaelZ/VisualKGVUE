@@ -44,7 +44,7 @@
             <template #footer>
       <span class="dialog-footer">
         <el-button type="primary" @click="dialogVisible = false">
-          Confirm
+          确认
         </el-button>
       </span>
             </template>
@@ -85,6 +85,7 @@ export default defineComponent({
       "allowShowDownloadButton": false,
       "defaultNodeBorderWidth": 2,
       'allowShowMiniToolBar':false,
+      'allowAutoLayoutIfSupport':false,
       // "defaultLineMarker": {
       //   "markerWidth": 15,
       //   "markerHeight": 15,
@@ -269,6 +270,10 @@ export default defineComponent({
 #relationgraph {
 }
 
+.lakeStyle{
+  background-color:#409eff !important ;
+  border-color:#409eff !important ;
+}
 .right-table {
 
 }

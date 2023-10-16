@@ -1,7 +1,7 @@
 <template>
   <div class="knowledge-graph">
     <el-container>
-      <el-header class="header">知识图谱
+      <el-header class="header">湖北省测绘档案成果——知识图谱
       </el-header>
       <el-container>
         <el-aside width="collapse">
@@ -54,6 +54,7 @@
 ">
     <span class="el-dropdown-link">
       {{currentType}}
+      <el-icon><arrow-down/></el-icon>
     </span>
       <template #dropdown>
         <el-dropdown-menu>
@@ -64,13 +65,14 @@
         </el-dropdown-menu>
       </template>
     </el-dropdown>
+
     <el-input v-model="inputname" placeholder="名称" style="width: 300px"/>
   </div>
   <template #footer>
       <span class="dialog-footer">
-        <el-button @click="neo4jQueryDialog = false">Cancel</el-button>
+        <el-button @click="neo4jQueryDialog = false">取消</el-button>
         <el-button type="primary" @click="comfirmQuery">
-          Confirm
+          确认
         </el-button>
       </span>
   </template>
@@ -83,12 +85,12 @@ import RelationG from './RelationG'
 import MapContainer from "@/components/MapContainer";
 import neo4j from 'neo4j-driver'
 import {ref, onMounted, onBeforeUnmount, reactive, nextTick} from "vue";
-import { Search,Expand,Fold } from '@element-plus/icons-vue'
+import { Search,Expand,Fold,ArrowDown } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 export default {
   name: 'vKnowledgeGraph',
-  components: {RelationG,MapContainer,Search,Expand,Fold},
+  components: {RelationG,MapContainer,Search,Expand,Fold,ArrowDown},
   setup() {
     const linejson = {
       "type": "LineString",
@@ -101,14 +103,14 @@ export default {
     }
     const leftVisible=ref(false)
     const RGdata = reactive({})
-    const defalutquery = "MATCH (n)-[r]->(m)  Return n,r,m limit 100"
+    const defaultquery = "MATCH (n)-[r]->(m)  Return n,r,m limit 50"
     //MATCH (n:river)-[r]->(m)  Return n,r,m limit 50
     let neo4jlink = reactive()
     let session = reactive()
     neo4jlink = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic('neo4j', 'neo4jneo4j'))
     onMounted(() => {
       session = neo4jlink.session()
-      runquery(defalutquery)
+      runquery(defaultquery)
     })
     onBeforeUnmount(() => {
       session.close()
@@ -157,7 +159,7 @@ export default {
           let tmpquery=''
           console.log(nodeids.length)
           if(nodeids.length===0){
-            tmpquery=defalutquery
+            tmpquery=defaultquery
             ElMessage('关键词错误或者不存在！')
           }
           else {
@@ -179,8 +181,14 @@ export default {
                 name2=node2.properties[pname]
               }
             })
-            nodes.push({id: node1.properties.id.toString(), text: name1, data: node1.properties});
-            nodes.push({id: node2.properties.id.toString(), text: name2, data: node2.properties});
+            //根据河流/湖泊类型匹配不同的style
+            const styledict={
+              'Lake':'lakeStyle',
+              'River':'riverStyle',
+            }
+            // console.log(node1)
+            nodes.push({id: node1.properties.id.toString(), text: name1, data: node1.properties,styleClass:styledict[node1.labels[0]]});
+            nodes.push({id: node2.properties.id.toString(), text: name2, data: node2.properties,styleClass:styledict[node1.labels[0]]});
             edges.push({
               from: node1.properties.id.toString(),
               to: node2.properties.id.toString(),
@@ -222,7 +230,7 @@ export default {
       neo4jQueryDialog.value=true
     }
     //根据选择的内容更新语句
-    const currentType=ref('请选择查询类型')
+    const currentType=ref('查询类型')
     const changeType=(cmd)=>{
       currentType.value=cmd
     }
@@ -235,7 +243,7 @@ export default {
         '流域名称':'Basin',
         '水系名称':'Riversys'
       }
-      let queryA=`match (n:${typedict[currentType.value]})-[r]->(m) where n.\`2015_properties_FIRST_NAME\`='${inputname.value}' return n,r,m limit 50`
+      let queryA=`match (n:${typedict[currentType.value]})-[r]->(m) where n.\`2015_properties_FIRST_NAME\` CONTAINS '${inputname.value}' return n,r,m limit 20`
       console.log(queryA)
       runquery(queryA)
       neo4jQueryDialog.value=false
@@ -273,9 +281,14 @@ export default {
   display: flex;
   flex-direction: column;
 }
-
+.el-dropdown-link{
+  cursor: pointer;
+  /*color: var(--el-color-primary);*/
+  display: flex;
+  align-items: center;
+}
 .header {
-  height: 50px;
+  height: 80px;
   line-height: 50px;
   text-align: center;
   font-size: 24px;
@@ -283,6 +296,4 @@ export default {
   background-color: #409eff;
   color: #fff;
 }
-
-
 </style>

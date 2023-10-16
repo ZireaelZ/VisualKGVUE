@@ -8,9 +8,9 @@
             size='small'
             border>
           <el-descriptions-item label='起点' label-align="left" align="center"
-          ><div @click="travel2node(data.from)">{{data.from}}</div></el-descriptions-item>
+          ><el-link @click="travel2node(data.from)">{{data.from}}</el-link></el-descriptions-item>
           <el-descriptions-item label='终点' label-align="left" align="center"
-          ><div @click="travel2node(data.to)">{{data.to}}</div></el-descriptions-item>
+          ><el-link @click="travel2node(data.to)">{{data.to}}</el-link></el-descriptions-item>
           <el-descriptions-item label='关系类型' label-align="left" align="center"
           >{{ data.type }}</el-descriptions-item>
           <el-descriptions-item label='属性' >
