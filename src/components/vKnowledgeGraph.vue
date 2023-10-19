@@ -193,7 +193,7 @@ export default {
               from: node1.properties.id.toString(),
               to: node2.properties.id.toString(),
               text: rel.type,
-              data: rel.properties
+              data: rel.properties,
             });
           })
           nodes = Array.from(new Set(nodes.map(JSON.stringify)), JSON.parse);

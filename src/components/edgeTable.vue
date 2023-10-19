@@ -1,6 +1,6 @@
 <template>
-  <div class="demo-collapse">
-    <span>关系</span>
+  <div class="demo-collapse" style="text-align: left">
+    <div style="padding-top: 10px;padding-bottom: 10px">关系</div>
     <el-collapse  v-for="(data,index) in edgedata" :key=index>
       <el-collapse-item :title="`关系${index+1}`" >
         <el-descriptions

@@ -1,11 +1,15 @@
 <template>
     <div class="demo-collapse">
-      <div v-if="nodedata!=undefined" >
-        <div>{{nodename}}</div>
+      <div v-if="nodedata!=undefined" style="text-align: left">
+        <div style="padding-bottom: 10px;">{{nodename}}</div>
         <el-button @click="findRelationNode(nodedata.id)">查找相关节点</el-button>
         <el-button @click="showInEcharts(nodedata.landuse)">土地利用数据</el-button>
         <el-collapse v-for="(data, year) in nodedata.property" :key="year">
-          <el-collapse-item :title="`${year}属性`">
+          <el-collapse-item >
+            <template #title>
+              {{year}}年
+              <el-link style="margin-left: 10px" @click="showinMap(linejson)">查看空间位置</el-link>
+            </template>
             <div style="overflow: auto;height: 500px">
               <el-descriptions
                   direction="vertical"
@@ -23,9 +27,9 @@
                       <el-descriptions-item :label=k >{{v}}</el-descriptions-item>
                     </el-descriptions>
                   </template>
-                  <template v-else-if="property=='geometry_type'">
-                    <el-link @click="showinMap(linejson)">在地图中查看</el-link>
-                  </template>
+<!--                  <template v-else-if="property=='geometry_type'">-->
+<!--                    <el-link @click="showinMap(linejson)">在地图中查看</el-link>-->
+<!--                  </template>-->
                   <template v-else>
                     <div @click="clickprop(property,value)">{{value}}</div>
                   </template>

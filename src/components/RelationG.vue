@@ -14,14 +14,13 @@
       </div>
       </el-col>
     <el-col :span=rightspan v-show="rightVisible">
-      <el-card  class="right">
+      <el-card  style="height: 80%">
         <template #header>
           <div style="display: flex;
   justify-content: space-between;
-  align-items: center;"
+text-align: center"
           >属性信息
             <el-icon @click="closePropWindow"><close/></el-icon></div>
-
         </template>
 
         <div style="overflow-y:hidden ">
@@ -142,6 +141,8 @@ export default defineComponent({
     }
     const onLineClick = (lineObject, linkObject) => {
       // lineObject,linkObject,$event)
+      rightVisible.value=true
+      setspan()
       parsingEdgedata(linkObject)
     }
     const emitquery = (query) => {
@@ -274,7 +275,5 @@ export default defineComponent({
   background-color:#409eff !important ;
   border-color:#409eff !important ;
 }
-.right-table {
 
-}
 </style>
