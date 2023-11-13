@@ -18,6 +18,10 @@
               <el-icon><search/></el-icon>
               <template #title>根据名称查询</template>
             </el-menu-item>
+            <el-menu-item index="3" @click="imageDialog=true">
+              <el-icon><search/></el-icon>
+              <template #title>查看影像数据</template>
+            </el-menu-item>
           </el-menu>
         </el-aside>
         <el-main>
@@ -62,6 +66,7 @@
           <el-dropdown-item command="湖泊名称">湖泊名称</el-dropdown-item>
           <el-dropdown-item command="流域名称">流域名称</el-dropdown-item>
           <el-dropdown-item command="水系名称">水系名称</el-dropdown-item>
+          <el-dropdown-item command="行政区">行政区</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
@@ -72,6 +77,45 @@
       <span class="dialog-footer">
         <el-button @click="neo4jQueryDialog = false">取消</el-button>
         <el-button type="primary" @click="comfirmQuery">
+          确认
+        </el-button>
+      </span>
+  </template>
+</el-dialog>
+<el-dialog
+    v-model="imageDialog"
+    title="影像数据查询"
+    width="450px"
+>
+  <div style="display: flex">
+    <el-dropdown @command="changeImageType" style="
+    cursor: pointer;
+  /*color: var(--el-color-primary);*/
+  display: flex;
+  align-items: center;
+">
+    <span class="el-dropdown-link">
+      {{currentImageType}}
+      <el-icon><arrow-down/></el-icon>
+    </span>
+      <template #dropdown>
+        <el-dropdown-menu>
+          <el-dropdown-item command="2000DEM">2000DEM</el-dropdown-item>
+          <el-dropdown-item command="2015DEM">2015DEM</el-dropdown-item>
+          <el-dropdown-item command="2015DEM5W">2015DEM5W</el-dropdown-item>
+          <el-dropdown-item command="2017DEM">2017DEM</el-dropdown-item>
+          <el-dropdown-item command="2005DOM">2005DOm</el-dropdown-item>
+          <el-dropdown-item command="2015DOM">2015DOM</el-dropdown-item>
+          <el-dropdown-item command="2018WP">2019WP</el-dropdown-item>
+          <el-dropdown-item command="2019WP">2019WP</el-dropdown-item>
+        </el-dropdown-menu>
+      </template>
+    </el-dropdown>
+  </div>
+  <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="imageDialog = false">取消</el-button>
+        <el-button type="primary" @click="readImage">
           确认
         </el-button>
       </span>
@@ -103,7 +147,8 @@ export default {
     }
     const leftVisible=ref(false)
     const RGdata = reactive({})
-    const defaultquery = "MATCH (n)-[r]->(m)  Return n,r,m limit 50"
+    const defaultquery = "MATCH (n)-[r]-(m)  Return n,r,m limit 40"
+    // const defaultquery = "MATCH (n1:Lake)-[r1]->(m1) where n1.`2006_properties_FIRST_NAME`='螺蛳湾'  MATCH (n2)-[r2]->(m2:Lake) where m2.`2006_properties_FIRST_NAME`='螺蛳湾' with collect(n1) + collect(n2) as n, collect(r1) + collect(r2) as r, collect(m1) + collect(m2) as m RETURN n, r, m"
     //MATCH (n:river)-[r]->(m)  Return n,r,m limit 50
     let neo4jlink = reactive()
     let session = reactive()
@@ -131,7 +176,6 @@ export default {
       setspan()
       nextTick(()=>{
         mapContainer.value.resizemap()
-
         mapContainer.value.loadGeojson(geojson)
       })
 
@@ -146,52 +190,55 @@ export default {
     const getextent=()=>{
       mapContainer.value.getextent()
     }
-    const runquery = async (query) => {
-      {
-        try {
+    async function runquery(query){
+      try {
           const result = await session.run(query)
+        console.log(result)
           let nodes = [], edges = []
           let nodeids=[]
           result.records.forEach(record => {
-            nodeids.push(record.get('n').properties.id.toString())
+            nodeids.push(record.get('n').identity.toString())
           })
           nodeids=Array.from(new Set(nodeids.map(JSON.stringify)), JSON.parse);
           let tmpquery=''
-          console.log(nodeids.length)
           if(nodeids.length===0){
             tmpquery=defaultquery
             ElMessage('关键词错误或者不存在！')
           }
           else {
-            tmpquery = `MATCH (n)-[r]->(m) WHERE n.id IN [${nodeids}] or m.id IN [${nodeids}] RETURN n, r, m`
+            // tmpquery = `MATCH (n)-[r]->(m) WHERE id(n) IN [${nodeids}] or id(m) IN [${nodeids}] RETURN n, r, m limit 30`
+            tmpquery=query
           }
           const result2=await session.run(tmpquery)
           result2.records.forEach(record => {
             const node1 = record.get('n');
             const node2 = record.get('m');
             const rel = record.get('r');
-            let name1='',name2=''
-            Object.keys(node1.properties).forEach((pname)=>{
-              if (pname.includes('FIRST_NAME')){
-                name1=node1.properties[pname]
-              }
-            })
-            Object.keys(node2.properties).forEach((pname)=>{
-              if (pname.includes('FIRST_NAME')){
-                name2=node2.properties[pname]
-              }
-            })
+            let name1='',name2='',startID,endID
+            name1=node1.properties["NAME"]
+            name2=node2.properties["NAME"]
+            if (node1['elementId']===rel['startNodeElementId'])
+            {
+              startID=node1['elementId']
+              endID=node2['elementId']
+            }
+            else {
+              startID=node2['elementId']
+              endID=node1['elementId']
+            }
             //根据河流/湖泊类型匹配不同的style
             const styledict={
               'Lake':'lakeStyle',
               'River':'riverStyle',
+              'Basin':'basinStyle',
+              'RiverSys':'riversysStyle',
             }
             // console.log(node1)
-            nodes.push({id: node1.properties.id.toString(), text: name1, data: node1.properties,styleClass:styledict[node1.labels[0]]});
-            nodes.push({id: node2.properties.id.toString(), text: name2, data: node2.properties,styleClass:styledict[node1.labels[0]]});
+            nodes.push({id: node1['elementId'], text: name1, type:node1.labels.toString(),data: node1.properties,styleClass:styledict[node1.labels[0]]});
+            nodes.push({id: node2['elementId'], text: name2, type:node2.labels.toString(),data: node2.properties,styleClass:styledict[node2.labels[0]]});
             edges.push({
-              from: node1.properties.id.toString(),
-              to: node2.properties.id.toString(),
+              from: startID,
+              to: endID,
               text: rel.type,
               data: rel.properties,
             });
@@ -206,8 +253,64 @@ export default {
           // 处理错误
           console.error(error)
         }
-      }
     }
+    // const runquery = async (query) => {
+    //   {
+    //     try {
+    //       const result = await session.run(query)
+    //       let nodes = [], edges = []
+    //       let nodeids=[]
+    //       result.records.forEach(record => {
+    //         nodeids.push(record.get('n').identity.toString())
+    //       })
+    //       nodeids=Array.from(new Set(nodeids.map(JSON.stringify)), JSON.parse);
+    //       let tmpquery=''
+    //       if(nodeids.length===0){
+    //         tmpquery=defaultquery
+    //         ElMessage('关键词错误或者不存在！')
+    //       }
+    //       else {
+    //         // tmpquery = `MATCH (n)-[r]->(m) WHERE id(n) IN [${nodeids}] or id(m) IN [${nodeids}] RETURN n, r, m limit 30`
+    //         tmpquery=query
+    //       }
+    //       const result2=await session.run(tmpquery)
+    //       result2.records.forEach(record => {
+    //         const node1 = record.get('n');
+    //         const node2 = record.get('m');
+    //         const rel = record.get('r');
+    //         let name1='',name2=''
+    //         name1=node1.properties["NAME"]
+    //         name2=node2.properties["NAME"]
+
+    //         //根据河流/湖泊类型匹配不同的style
+    //         const styledict={
+    //           'Lake':'lakeStyle',
+    //           'River':'riverStyle',
+    //           'Basin':'basinStyle',
+    //           'RiverSys':'riversysStyle',
+    //         }
+    //         // console.log(node1)
+    //         nodes.push({id: node1.identity.toString(), text: name1, type:node1.labels.toString(),data: node1.properties,styleClass:styledict[node1.labels[0]]});
+    //         nodes.push({id: node2.identity.toString(), text: name2, type:node2.labels.toString(),data: node2.properties,styleClass:styledict[node2.labels[0]]});
+    //         edges.push({
+    //           from: node1.identity.toString(),
+    //           to: node2.identity.toString(),
+    //           text: rel.type,
+    //           data: rel.properties,
+    //         });
+    //       })
+    //       nodes = Array.from(new Set(nodes.map(JSON.stringify)), JSON.parse);
+    //       edges= Array.from(new Set(edges.map(JSON.stringify)), JSON.parse);
+    //       RGdata.rootID = 999999
+    //       RGdata.nodes = nodes
+    //       RGdata.lines = edges
+    //       showgraph(RGdata)
+    //     } catch (error) {
+    //       // 处理错误
+    //       console.error(error)
+    //     }
+    //   }
+    // }
     const leftspan=ref(0)
     const rightspan=ref(24)
     const setspan=()=>{
@@ -225,6 +328,7 @@ export default {
       setspan()
     }
     const neo4jQueryDialog=ref(false)
+    const imageDialog = ref(false)
     //打开neo4j查询对话框
     const opendialog=()=>{
       neo4jQueryDialog.value=true
@@ -234,6 +338,11 @@ export default {
     const changeType=(cmd)=>{
       currentType.value=cmd
     }
+    //根据选择的内容设置影像名
+    const currentImageType = ref('选择查看的数据')
+    const changeImageType=(cmd)=>{
+      currentImageType.value = cmd
+    }
     const inputname=ref('')
     //确认查询语句
     const comfirmQuery=()=>{
@@ -241,12 +350,37 @@ export default {
         '湖泊名称':'Lake',
         '河流名称':'River',
         '流域名称':'Basin',
-        '水系名称':'Riversys'
+        '水系名称':'RiverSys',
+        '行政区':'Region'
       }
-      let queryA=`match (n:${typedict[currentType.value]})-[r]->(m) where n.\`2015_properties_FIRST_NAME\` CONTAINS '${inputname.value}' return n,r,m limit 20`
+      let queryA=`match (n:${typedict[currentType.value]})-[r]-(m) where n.\`NAME\` CONTAINS '${inputname.value}' return n,r,m limit 40`
       console.log(queryA)
       runquery(queryA)
       neo4jQueryDialog.value=false
+    }
+    //发送请求查看影像数据
+    const readImage = ()=>{
+      const extent =  mapContainer.value.getextent()
+      // 获取当前地图显示的经纬度范围
+      const dataname = currentImageType.value
+      const url = "http://127.0.0.1:5000/readimage"
+      const data = {
+        dataname: dataname,
+        coordinates: extent
+      }
+      const options = {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }
+      fetch(url, options).then((res) => {
+        if (res.status === 200) {
+          console.log("fuck")
+        }
+      }).catch((e) => {
+        console.log(e)
+      })
+      console.log(extent); // 输出结果为 [minX, minY, maxX, maxY]
     }
     //侧边面板折叠
     const asideCollapse=ref(true)
@@ -266,9 +400,14 @@ export default {
       closemap,
       opendialog,
       neo4jQueryDialog,
+      imageDialog,
       currentType,
       changeType,
-      comfirmQuery,asideCollapse
+      currentImageType,
+      changeImageType,
+      comfirmQuery,
+      readImage,
+      asideCollapse
     }
   }
   ,

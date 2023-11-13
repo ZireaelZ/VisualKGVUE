@@ -22,7 +22,6 @@ export default {
       echartsT.value.clear()
     }
     const resolvedata=(data)=>{
-      console.log(data)
       //先考虑buffer500
       const source=ref([])
       const years=['year']
@@ -43,20 +42,21 @@ export default {
         let tmptype=[type]
         Object.keys(data).forEach((year)=>{
           if(Object.prototype.hasOwnProperty.call(data[year], type)){
-            tmptype.push(data[year][type])
+            tmptype.push(data[year][type]/1000000)
           }
-          else tmptype.push(0.01)
+          else tmptype.push(0.00001)
         })
         source.value.push(tmptype)
       })
+      console.log(source.value)
       const options={
         legend:{},
         tooltip:{},
         dataset:{
           source:source.value
         },
-        xAxis:{type:'category'},
-        yAxis:{},
+        xAxis:{name:'土地类型',type:'category',},
+        yAxis:{name:'平方公里',},
         series:series.value
       }
       echartsT.value.setOption(options)
