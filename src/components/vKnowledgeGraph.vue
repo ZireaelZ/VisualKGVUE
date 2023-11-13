@@ -86,6 +86,7 @@
     v-model="imageDialog"
     title="影像数据查询"
     width="450px"
+
 >
   <div style="display: flex">
     <el-dropdown @command="changeImageType" style="
@@ -104,7 +105,7 @@
           <el-dropdown-item command="2015DEM">2015DEM</el-dropdown-item>
           <el-dropdown-item command="2015DEM5W">2015DEM5W</el-dropdown-item>
           <el-dropdown-item command="2017DEM">2017DEM</el-dropdown-item>
-          <el-dropdown-item command="2005DOM">2005DOm</el-dropdown-item>
+          <el-dropdown-item command="2005DOM">2005DOM</el-dropdown-item>
           <el-dropdown-item command="2015DOM">2015DOM</el-dropdown-item>
           <el-dropdown-item command="2018WP">2019WP</el-dropdown-item>
           <el-dropdown-item command="2019WP">2019WP</el-dropdown-item>
